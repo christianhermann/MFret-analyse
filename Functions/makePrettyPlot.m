@@ -6,7 +6,7 @@ function fig = makePrettyPlot(obj, data)
 %   Inputs:
 %   - obj: The FRETData object.
 %   - data: The type of data to be plotted. Supported values are "cutData", "btCorrectedData",
-%           "btPbCorrectedData", "Ratio", "NFRET", "EFRET", "normFRET", "normRatio".
+%           "btPbCorrectedData", "rawRatio","Ratio", "NFRET", "EFRET", "normFRET", "normRatio".
 %
 %   Output:
 %   - fig: The generated plot figure.
@@ -30,6 +30,10 @@ switch data
         ylab = ["Intensität (µA)" "Intensität (mV)" "Ratio (mV/µA)"];
         textTitle = ["Donor" "Akzeptor" "Ratio"];
         fig = obj.createFRETPlot(data, 'ylab', ylab, 'textTitle', textTitle,'changeUnitDonor', 10^6, 'changeUnitAcceptor', 10^3, 'changeUnitFRET', 10^-3);
+    case "RawRatio"
+        ylab = ["Intensität (µA)" "Intensität (mV)" "Ratio (mV/µA)"];
+        textTitle = ["Donor" "Akzeptor" "Ratio"];
+        fig = obj.createFRETPlot(data, 'ylab', ylab, 'textTitle', textTitle,'changeUnitDonor', 10^6, 'changeUnitAcceptor', 10^3, 'changeUnitFRET', 10^-3);
     case "NFRET"
         ylab = ["Intensität (µA)" "Intensität (mV)" "Intensität (arb. unit)"];
         textTitle = ["Donor" "Akzeptor" "NFRET"];
@@ -38,7 +42,7 @@ switch data
         ylab = ["Intensität (µA)" "Intensität (mV)" "Intensität (arb. unit)"];
         textTitle = ["Donor" "Akzeptor" "EFRET"];
         fig = obj.createFRETPlot(data, 'ylab', ylab, 'textTitle', textTitle, 'changeUnitDonor', 10^6, 'changeUnitAcceptor', 10^3);
-            case "DFRET"
+    case "DFRET"
         ylab = ["Intensität (µA)" "Intensität (mV)" "Intensität (arb. unit)"];
         textTitle = ["Donor" "Akzeptor" "DFRET"];
         fig = obj.createFRETPlot(data, 'ylab', ylab, 'textTitle', textTitle, 'changeUnitDonor', 10^6, 'changeUnitAcceptor', 10^3);

@@ -49,6 +49,7 @@ classdef FRETdata
     %   btCorrectedData - The FRET data corrected for background fluorescence.
     %   btPbCorrectedData - The FRET data corrected for background fluorescence and photobleaching.
     %   normFRET - The FRET values (btPBCorrected) normalized to one.
+    %   RawRatio - The FRET ratio calculated from the cutData.
     %   Ratio - The FRET ratio calculated from the btCorrectedData.
     %   pbCorRatio - The FRET ratio calculated from the bPbtCorrectedData.
     %   normRatio - The FRET ratio calculated from normalized btPbCorrectedData.
@@ -100,6 +101,7 @@ classdef FRETdata
         btPbCorrectedData
         normFRET
         normPbCorrectedFRET
+        RawRatio
         Ratio
         pbCorrectedRatio
         normRatio
@@ -198,14 +200,22 @@ classdef FRETdata
             % calculation of new indices and use the provided values directly.
 
             if nargin > 3
+                tableData = obj.(data);
+                tableDataNames = ["Donor" "FRET" "Acceptor"];
                 dIwB1 = oldDIwB1;
                 dIwB2 = oldDIwB2;
+                for i = 1:3
+                    dataIndex(i,1) = median(oldDIwB1{i});
+                    dataIndex(i,2) = median(oldDIwB2{i});
+                end
+
             else
                 tableData = obj.(data);
                 tableDataNames = ["Donor" "FRET" "Acceptor"];
                 dIwB1 = cell(1, 3);
                 dIwB2 = cell(1, 3);
-
+                dataIndex = zeros(3,2);
+                c_info = cell(3,2);
                 for k = 1:3
                     fig = figure;
                     plot(obj.cutTime(round(1:numel(tableData.(tableDataNames{k}))/3)) , ...
@@ -217,28 +227,27 @@ classdef FRETdata
                     grid on
                     grid minor
                     fig.WindowState = 'maximized';
-                    c_info = cell(1,2);
-                    dataIndex = zeros(1,2);
+                   
                     for j = 1:2
                         shg
                         dcm_obj = datacursormode(1);
                         set(dcm_obj, 'DisplayStyle', 'window',...
                             'SnapToDataVertex', 'off', 'Enable', 'on')
                         waitforbuttonpress
-                        c_info{j} = getCursorInfo(dcm_obj);
-                        dataIndex(j) = c_info{j}.DataIndex;
+                        c_info{k,j} = getCursorInfo(dcm_obj);
+                        dataIndex(k,j) = c_info{k,j}.DataIndex;
                     end
                     grid off;
                     close;
 
-                    if (dataIndex(1) < bandwith)
+                    if (dataIndex(k,1) < bandwith)
                         dif = bandwith - dataIndex(1);
-                        dataIndex(1) = bandwith + 1;
-                        dataIndex(2) = dataIndex(2) + dif;
+                        dataIndex(k,1) = bandwith + 1;
+                        dataIndex(k,2) = dataIndex(k,2) + dif;
                     end
 
-                    dIwB1{k} = indexWBandwith(dataIndex(1), bandwith);
-                    dIwB2{k} = indexWBandwith(dataIndex(2), bandwith);
+                    dIwB1{k} = indexWBandwith(dataIndex(k,1), bandwith);
+                    dIwB2{k} = indexWBandwith(dataIndex(k,2), bandwith);
                 end
             end
 
@@ -250,11 +259,11 @@ classdef FRETdata
             Donor = tableData.Donor;
             FRET = tableData.FRET;
             slopeDonor = (mean(Donor(dIwB1{1}))-mean(Donor(dIwB2{1}))) / ...
-                (obj.cutTime(dataIndex(2)) - obj.cutTime(dataIndex(1)));
+                (obj.cutTime(dataIndex(1,2)) - obj.cutTime(dataIndex(1,1)));
             slopeFRET = (mean(FRET(dIwB1{2}))-mean(FRET(dIwB2{2}))) / ...
-                (obj.cutTime(dataIndex(2)) - obj.cutTime(dataIndex(1)));
+                (obj.cutTime(dataIndex(2,2)) - obj.cutTime(dataIndex(2,1)));
             slopeAcceptor = (mean(Acceptor(dIwB1{3}))-mean(Acceptor(dIwB2{3}))) / ...
-                (obj.cutTime(dataIndex(2)) - obj.cutTime(dataIndex(1)));
+                (obj.cutTime(dataIndex(3,2)) - obj.cutTime(dataIndex(3,1)));
 
             pbSlopeLocal =  table(slopeDonor, slopeFRET, slopeAcceptor);
 
@@ -519,14 +528,28 @@ classdef FRETdata
             writetable(obj.btCorrectedData, compSaveName, 'Sheet', 'btCorrectedData');
             writetable(obj.btPbCorrectedData, compSaveName, 'Sheet', 'btPbCorrectedData');
             writetable(obj.normFRET, compSaveName, 'Sheet', 'normFRET');
+            writetable(obj.RawRatio, compSaveName, 'Sheet', 'normFRET');
             writetable(obj.Ratio, compSaveName, 'Sheet', 'Ratio');
             writetable(obj.normRatio, compSaveName, 'Sheet', 'normRatio');
             writetable(obj.NFRET, compSaveName, 'Sheet', 'NFRET');
             writetable(obj.EFRET, compSaveName, 'Sheet', 'EFRET');
         end
 
-        function  saveMatFile(obj)
-            mkdir(fullfile(obj.savePath));
+        function  saveMatFile(obj, measurementsPath)
+
+            if nargin == 1
+                mkdir(obj.savePath);
+                fullsafeName = fullfile(obj.savePath, obj.fileName);
+                compSaveName = append(fullsafeName,'.mat');
+                save(compSaveName, "obj")
+                return
+            end
+
+            splitPath = strsplit(obj.savePath, '\');
+            savePath =  strjoin(splitPath(numel(splitPath)-3:numel(splitPath)), '/');
+            savePath =   fullfile(measurementsPath,savePath);
+            obj.savePath = savePath;
+            mkdir(savePath);
             fullsafeName = fullfile(obj.savePath, obj.fileName);
             compSaveName = append(fullsafeName,'.mat');
             save(compSaveName, "obj")
@@ -536,15 +559,16 @@ classdef FRETdata
             protocolTable = readtable(fullfile(settingsPath, append(protocolName, ".xlsx")));
         end
 
-        function protocolTime = getProtocolTime(infoTable, fileName)
+        function protocolTime = getProtocolTime(~, infoTable, fileName)
             protocolTime = infoTable.timeStart(find(contains (infoTable.name,fileName)));
         end
 
-        function protocolName = getProtocolName(fileName, seperator, index)
+        function protocolName = getProtocolName(~, fileName, seperator, index)
             fileNameSplit = split(fileName, seperator);
             protocolName = fileNameSplit{length(fileNameSplit) + index};
         end
-        function fig = addPharmakaToFig(obj, time, fig, protocolStartTime, protocolStructure)
+
+        function fig = addPharmakaToFig(obj, time, fig, protocolStartTime, protocolStructure, sepLines)
             if contains(obj.fileName, "BAL") ||  contains(obj.fileName, "BLEACH")  || contains(obj.protocol, "No") 
                 return
             end
@@ -557,7 +581,7 @@ classdef FRETdata
                 end
             end
 
-            fig = addApplicationLines(fig, protocolStructure.Times, protocolStructure.Solution, protocolStructure.Color);
+            fig = addApplicationLines(fig, protocolStructure.Times, protocolStructure.Solution, protocolStructure.Color, sepLines);
         end
 
     end

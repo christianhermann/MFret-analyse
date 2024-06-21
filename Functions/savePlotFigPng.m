@@ -20,4 +20,9 @@ savefig(fig, append(fullsafeName, '_', appendix, '.fig'));
 
 % Save the figure as a .png file with a resolution of 600 DPI
 exportgraphics(fig, append(fullsafeName, '_', appendix, '.png'), 'Resolution', 600);
+
+disp("Plot saved as:")
+disp(append(fullsafeName, '_', appendix, '.fig'))
+disp(append(fullsafeName, '_', appendix, '.png'))
+disp('------------------------------------------------------------------')
 end

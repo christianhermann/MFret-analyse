@@ -1,12 +1,21 @@
-addpath(genpath('C:\Users\Christian\OneDrive\Dokumente\FRET\Utilitys'));
-addpath(genpath('C:\Users\Christian\OneDrive\Dokumente\FRET\Scripts'));
+%% Paths and Settings
+filepath = matlab.desktop.editor.getActiveFilename;
+filepathSplit = regexp(filepath, '\', 'split');
+basePath = strjoin(filepathSplit(1:(numel(filepathSplit)-1)),'\');
+addpath(genpath(append(basePath, '\Scripts')));
+[backgroundPath, bleedthroughPath, settingsPath, ...
+    measurementsPath, EFactorPath, GFactorPath, imagesPath, tablePath] = getFolderPaths(basePath);
 
-%BALData = readtable('U:\Projekte an Analysis1\Christian\mTRPC5 Projekt\Auswertungen\FRET\AnalysisBAL.xlsx');
+%% BAl Table 
 
-BALData = readtable('C:\Users\Christian\OneDrive\Dokumente\FRET\AnalysisBAL.xlsx');
-BALData = BALData(BALData.quality == 1,:);
+BALDataRaw = getBALtable(tablePath);
+
+%Localisation = readtable(append(basePath,'Localisation.xlsx', opts, "UseExcel", false));
+%BALData = join(BALData, Localisation);
+
+BALData = BALDataRaw(BALDataRaw.quality == 1,:);
 filler = repelem('+', numel(BALData.midi));
-newMidi = [num2str(BALData.midi) filler' num2str(BALData.midiCo)];
+newMidi = [num2str(double(BALData.midi)) filler' num2str(BALData.midiCo)];
 newMidi = categorical(strtrim(strrep(string(newMidi), "+NaN","")));
 BALData.midi = categorical(BALData.midi);
 BALData.midiCo = categorical(BALData.midiCo);
@@ -15,8 +24,8 @@ BALData.newMidi = newMidi;
 
 fig = figure();
 g = gramm('x',BALData.newMidi,'y',BALData.btCorrectedData_Rel);
+g.facet_grid([],BALData.loc)
 g.set_title("btCorrectedData_Rel")
-
 %g.stat_violin('fill','transparent','normalization','width');
 %g.no_legend();
 g.stat_boxplot('width',0.15);

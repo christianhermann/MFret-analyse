@@ -1,8 +1,8 @@
-addpath(genpath('C:\Users\Christian\OneDrive\Dokumente\FRET\Scripts\'));
-%bt = load('C:\Users\Christian\OneDrive\Dokumente\FRET\BleedThrough\btmTq2FlAsH.mat');
-bt = load('C:\Users\Christian\OneDrive\Dokumente\FRET\BleedThrough\btAtto425FlAsH.mat');
-%bt = load('C:\Users\Christian\OneDrive\Dokumente\FRET\BleedThrough\btcpmTq2FlAsH.mat');
-%bt = load('C:\Users\Christian\OneDrive\Dokumente\FRET\BleedThrough\btmTq2CF500.mat');
+addpath(genpath('C:\Users\Chris\OneDrive\Dokumente\FRET\'));
+bt = load('C:\Users\Chris\OneDrive\Dokumente\FRET\BleedThrough\btmTq2FlAsH.mat');
+%bt = load('C:\Users\Chris\OneDrive\Dokumente\FRET\BleedThrough\btAtto425FlAsH.mat');
+%bt = load('C:\Users\Chris\OneDrive\Dokumente\FRET\BleedThrough\btcpmTq2FlAsH.mat');
+%bt = load('C:\Users\Chris\OneDrive\Dokumente\FRET\BleedThrough\btmTq2CF500.mat');
 fns = fieldnames(bt);
 bt = bt.(fns{1});
 btData.btDF = bt.DF;
@@ -12,17 +12,17 @@ btData.btDA = bt.DA;
 
 bgData = getBackground;
 
-Gfactor  = load('C:\Users\Christian\OneDrive\Dokumente\FRET\G-Factor\G-Factor_mTq2-FlAsH.mat');
-%Gfactor  = load('C:\Users\Christian\OneDrive\Dokumente\FRET\G-Factor\G-Factor_cpmTq2-FlAsH.mat');
+Gfactor  = load('C:\Users\Chris\OneDrive\Dokumente\FRET\G-Factor\G-Factor_mTq2-FlAsH.mat');
+%Gfactor  = load('C:\Users\Chris\OneDrive\Dokumente\FRET\G-Factor\G-Factor_cpmTq2-FlAsH.mat');
 Gfactor = Gfactor.MeanGFactor;
 %Gfactor = 0;
 
-%Efactor = load('C:\Users\Christian\OneDrive\Dokumente\FRET\E-Factor\E-Factor_mTq2-FlAsH.mat');
-%Efactor = Efactor.MeanEFactor;
+Efactor = load('C:\Users\Chris\OneDrive\Dokumente\FRET\E-Factor\E-Factor_mTq2-FlAsH.mat');
+Efactor = Efactor.MeanEFactor;
 Efactor = 0;
 
-settingsPath = 'C:\Users\Christian\OneDrive\Dokumente\FRET\Settings\';
-infoTable = readtable("C:\Users\Christian\OneDrive\Dokumente\FRET\Auswertung.xlsx",  "UseExcel", false);
+settingsPath = 'C:\Users\Chris\OneDrive\Dokumente\FRET\Settings\';
+infoTable = readtable("C:\Users\Chris\OneDrive\Dokumente\FRET\Auswertung.xlsx",  "UseExcel", false);
 folderTopLevel = uigetdir(); % replace with the actual path to the folder
 
 files = dir(folderTopLevel);
@@ -79,7 +79,7 @@ for k = 1:length(subDirsNames)
                     FretData.protocol = "No";
                 end
                 waitbar(.20,f,'Cutting your data');
-                [FretData.cutData, FretData.protocolStartTimeAC, FretData.cutTimeLocal] = FretData.cutMeasurement("rawData");; 
+                [FretData.cutData, FretData.protocolStartTimeAC, FretData.cutTime] = FretData.cutMeasurement("rawData");
                 waitbar(.29,f,'Correcting intensities of your data');
                 FretData.btCorrectedData = FretData.correctIntensities("cutData");
                 waitbar(.38,f,'Correct photobleaching of your data');

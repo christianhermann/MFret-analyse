@@ -9,7 +9,7 @@ files = files(~dirFlags); % A structure with extra info.
 
 
 filesMat = files(contains({files.name}, '.mat'));
-        dataTypes = ["cutData", "btCorrectedData", "btPbCorrectedData", "Ratio", "NFRET", "EFRET", "DFRET", "normFRET", "normRatio"];
+dataTypes = ["cutData", "btCorrectedData", "btPbCorrectedData", "Ratio", "NFRET", "EFRET", "DFRET", "normFRET", "normRatio"];
 
 for i = 1:numel(filesMat)
     filename = fullfile(filesMat(i).folder, filesMat(i).name);

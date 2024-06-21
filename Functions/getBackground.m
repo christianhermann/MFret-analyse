@@ -1,8 +1,5 @@
-function meanBackground = getBackground(filename)
-    if nargin < 1
-        filename = 'C:\Users\Christian\OneDrive\Dokumente\FRET\Background\background.mat';  % Pre-filled string
-    end
-    
-    files = load(filename);
+function meanBackground = getBackground(filepath)
+    filepath = fullfile(filepath,'background.mat');
+    files = load(filepath);
     meanBackground = files.meanBackground;
 end

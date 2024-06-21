@@ -1,4 +1,4 @@
-function [fig] = addApplicationLines(fig,appTime, appName, appColor)
+function [fig] = addApplicationLines(fig,appTime, appName, appColor, sepLines)
 %UNTITLED5 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -22,6 +22,11 @@ for j = 1:numel(appName)
 
     for i = 1:numel(fig.Children.Children)
         l = line(fig.Children.Children(i), appTime(j,:), [lineY(i) lineY(i)], 'color', appColor{j}, 'LineWidth', 1);
+            if sepLines == true
+                xl = xline(fig.Children.Children(i), appTime(j,1),'--', 'LineWidth', 0.3, 'Color', '#AAAAAA');
+                xl.Annotation.LegendInformation.IconDisplayStyle = "off";
+            end
+
         if (ismember(j, [firstOccurrenceIndices{:}]))
             l.DisplayName = appName{j};
         else

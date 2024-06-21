@@ -1,4 +1,4 @@
-function [bleedthrough] = bleedthroughFunction(folder, bgData)
+function [bleedthrough intensities] = bleedthroughFunction(folder, bgData)
 %BLEEDTHROUGHFUNCTION Calculate bleedthrough values from measurement data
 %   bleedthrough = bleedthroughFunction(folder) calculates the bleedthrough values from measurement
 %   data files located in the specified folder. The function reads .mat files in the folder and
@@ -8,7 +8,7 @@ function [bleedthrough] = bleedthroughFunction(folder, bgData)
 %   - folder: The folder path containing the measurement data files.
 %
 %   Output:
-%   - bleedthrough: A structure array containing the calculated bleedthrough values for each data file.
+%   - bleedthrough: A table containing the calculated bleedthrough values for each data file.
 %
 %   Example:
 %   folder = 'C:\MeasurementData';
@@ -25,6 +25,7 @@ files = dir(folder);
 dirFlags = [files.isdir];
 files = files(~dirFlags);
 files = files(contains({files.name}, '.mat'));
+bleedthrough = table();
 
 % Process each data file
 for i = 1:size(files)
@@ -54,16 +55,22 @@ for i = 1:size(files)
     minRows = min(rows);
     
     % Trim the downsampled data to the minimum number of rows
-    downsampledData{1} = downsampledData{1}(1:minRows, :) - bgData.Donor;
-    downsampledData{2} = downsampledData{2}(1:minRows, :) - bgData.Empty;
-    downsampledData{3} = downsampledData{3}(1:minRows, :) - bgData.FRET;
-    downsampledData{4} = downsampledData{4}(1:minRows, :) - bgData.Acceptor;
+    data{1} = table2array(downsampledData{1}(1:minRows, 2)) - bgData.Donor;
+    data{2} = table2array(downsampledData{2}(1:minRows, 2)) - bgData.Empty;
+    data{3} = table2array(downsampledData{3}(1:minRows, 2)) - bgData.FRET;
+    data{4} = table2array(downsampledData{4}(1:minRows, 2)) - bgData.Acceptor;
     
     % Calculate the bleedthrough values
-    bleedthrough(i).SexSemSexLem = mean(downsampledData{3}.value_3 ./ downsampledData{1}.value_1);
-    bleedthrough(i).LexLemSexLem = mean(downsampledData{3}.value_3 ./ downsampledData{4}.value_4);
-    bleedthrough(i).SexSemLexLem = mean(downsampledData{4}.value_4 ./ downsampledData{1}.value_1);
-    bleedthrough(i).LexLemSexSem = mean(downsampledData{1}.value_1 ./ downsampledData{4}.value_4);
+
+    bleedthrough.SexSemSexLem(i) = mean(data{3} ./ data{1});
+    bleedthrough.LexLemSexLem(i) = mean(data{3} ./ data{4});
+    bleedthrough.SexSemLexLem(i) = mean(data{4} ./ data{1});
+    bleedthrough.LexLemSexSem(i) = mean(data{1} ./ data{4});
+
+    intensities.Donor(i) = mean(data{1});
+    intensities.FRET(i) = mean(data{2});
+    intensities.Empty(i) = mean(data{3});
+    intensities.Acceptor(i) = mean(data{4});
 end
 
 end

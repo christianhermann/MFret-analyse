@@ -1,7 +1,14 @@
-%dataTable = table('Size', [0 9], 'VariableTypes', {'string','double','string', 'double', 'double', 'double','double', 'double', 'double'}, ...
-%    'VariableNames', {'name', 'midi', 'date', 'timeBef', 'timeAft','BAL_FRETCor','BAL_FRETCorNorm' , 'BAL_FRETCorNormBleachCor', 'BAL_FRETXia'});
-%dataTable = readtable('U:\Projekte an Analysis1\Christian\mTRPC5 Projekt\Auswertungen\FRET\AnalysisBAL.xlsx');
-dataTable = readtable('C:\Users\Christian\OneDrive\Dokumente\FRET\AnalysisBAL.xlsx');
+%% Paths and Settings
+filepath = matlab.desktop.editor.getActiveFilename;
+filepathSplit = regexp(filepath, '\', 'split');
+basePath = strjoin(filepathSplit(1:(numel(filepathSplit)-1)),'\');
+addpath(genpath(append(basePath, '\Scripts')));
+[backgroundPath, bleedthroughPath, settingsPath, ...
+    measurementsPath, EFactorPath, GFactorPath, imagesPath] = getFolderPaths(basePath);
+
+%% BAl Table 
+
+dataTable = readtable(append(basePath,'AnalysisBAL.xlsx'));
 
 bandwith = 100;
 
@@ -44,14 +51,19 @@ end
 
 for i = 1:numel(data)
     FretData = data{1,i}.obj;
-    fig = figure;
-    plot(FretData.cutTime, FretData.btPbCorrectedData.FRET,  '-o');
-    fig.WindowState = 'maximized';
+    fig = tiledlayout(2,2);
+    title(FretData.fileName);
+    nexttile
+    plot(FretData.cutTime, FretData.btCorrectedData.FRET,  '-o');
+    nexttile
+    plot(FretData.cutTime, FretData.btCorrectedData.Donor,  '-o');
+
+
     for j = 1:2
         shg
         dcm_obj = datacursormode(1);
         set(dcm_obj,'DisplayStyle','window',...
-            'SnapToDataVertex','off','Enable','on')
+           'SnapToDataVertex','off','Enable','on');
         waitforbuttonpress
         c_info{j} = getCursorInfo(dcm_obj);
         dataIndex(i,j) = c_info{j}.DataIndex;
@@ -59,9 +71,9 @@ for i = 1:numel(data)
     iwB1 = indexWBandwith(dataIndex(i,1), bandwith);
     iwB2 = indexWBandwith(dataIndex(i,2), bandwith);
 
-    dataTypes = ["cutData", "btCorrectedData", "btPbCorrectedData", "Ratio", "NFRET", "EFRET", "DFRET", "normFRET", "normRatio"];
+   % dataTypes = ["cutData", "btCorrectedData", "btPbCorrectedData", "Ratio", "NFRET", "EFRET", "DFRET", "normFRET", "normRatio"];
 
-
+    dataTypes = ["cutData", "btCorrectedData",  "Ratio"];
     for l = 1:numel(dataTypes)
         dataType = dataTypes(l);
 
@@ -80,10 +92,10 @@ for i = 1:numel(data)
 
     timeBef(i,1) = FretData.cutTime(dataIndex(i,1));
     timeAft(i,1) = FretData.cutTime(dataIndex(i,2));
-    close(fig);
+    close;
 
-     nameTable(i,1) = string(name(i));
- splitnames{i} = split(name{i}, '-');
+    nameTable(i,1) = string(filesBAL(i).name);
+    splitnames{i} = split(filesBAL(i).name, '-');
     midi(i,1) = str2double(splitnames{i}{4});
     midiCo(i,1) = NaN;
     if length(splitnames{i}) == 9
@@ -115,7 +127,7 @@ newNames = name2(~ismember(name2, name1));
 newTable = newTable(ismember(newTable.name, newNames), :);
 dataTable = [dataTable; newTable];
 
-writetable(dataTable, 'C:\Users\Christian\OneDrive\Dokumente\FRET\AnalysisBAL.xlsx');
+writetable(dataTable, 'C:\Users\Chris\OneDrive\Dokumente\FRET\AnalysisBAL2.xlsx');
 
 
 

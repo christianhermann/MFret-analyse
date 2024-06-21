@@ -1,5 +1,5 @@
-folder = uigetdir(); % replace with the actual path to the folder
-
+%folder = uigetdir(); % replace with the actual path to the folder
+folder = append(backgroundPath, "\Data\");
 files = dir(fullfile(folder, '**\*.*'));
 % Get a logical vector that tells which is a directory.
 dirFlags = [files.isdir];
@@ -24,5 +24,8 @@ meanBackground = array2table(mean(bgData), 'VariableNames',{'Donor','Empty','FRE
 SDBackground = array2table(std(bgData), 'VariableNames',{'Donor','Empty','FRET', 'Acceptor'});
 
 folderSplit = regexp(folder, '\', 'split');
-fileName = append(strjoin(folderSplit(1:(numel(folderSplit)-1)),'\'), '\background.mat');
+fileName = fullfile(backgroundPath,'background.mat');
 save(fileName, "meanBackground", "SDBackground");
+disp('Background intensity extracted and saved unter:')
+disp(fileName)
+disp('--------------------------------------------------------')
